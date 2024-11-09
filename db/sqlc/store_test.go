@@ -125,14 +125,14 @@ func TestTransferTxDeadlock(t *testing.T) {
 	results := make(chan TransferResult)
 
 	for i := 0; i < n; i++ {
-		go func() {
-			fromAccountID := account1.ID
-			toAccountID := account2.ID
+		fromAccountID := account1.ID
+		toAccountID := account2.ID
 
-			if i%2 == 0 {
-				fromAccountID = account2.ID
-				toAccountID = account1.ID
-			}
+		if i%2 == 1 {
+			fromAccountID = account2.ID
+			toAccountID = account1.ID
+		}
+		go func() {
 
 			ctx := context.Background()
 			arg := TransferTxParams{

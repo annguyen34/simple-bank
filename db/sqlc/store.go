@@ -118,10 +118,18 @@ func addMoney(ctx context.Context, q *Queries, accountID1 int64, amount1 int64, 
 		Amount: amount1,
 	})
 
+	if err != nil {
+		return
+	}
+
 	account2, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
 		ID:     accountID2,
 		Amount: amount2,
 	})
+
+	if err != nil {
+		return
+	}
 
 	return
 }
