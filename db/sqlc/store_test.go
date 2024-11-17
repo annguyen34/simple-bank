@@ -9,7 +9,6 @@ import (
 )
 
 func TestTransferTx(t *testing.T) {
-	store := NewStore(testDB)
 	account1 := createRandomAccount(t)
 	account2 := createRandomAccount(t)
 	existed := make(map[int]bool)
@@ -31,7 +30,7 @@ func TestTransferTx(t *testing.T) {
 				ToAccountID:   account2.ID,
 				Amount:        amount,
 			}
-			result, err := store.TransferTx(ctx, arg)
+			result, err := testStore.TransferTx(ctx, arg)
 
 			errs <- err
 			results <- result
@@ -68,10 +67,10 @@ func TestTransferTx(t *testing.T) {
 		require.Equal(t, amount, toEntry.Amount)
 		require.NotZero(t, toEntry.CreatedAt)
 
-		_, err = store.GetAccount(context.Background(), account1.ID)
+		_, err = testStore.GetAccount(context.Background(), account1.ID)
 		require.NoError(t, err)
 
-		_, err = store.GetAccount(context.Background(), account2.ID)
+		_, err = testStore.GetAccount(context.Background(), account2.ID)
 		require.NoError(t, err)
 
 		// check account balances
@@ -98,11 +97,11 @@ func TestTransferTx(t *testing.T) {
 	}
 
 	// check the final updated balances
-	updatedAccount1, err := testQueries.GetAccount(context.Background(), account1.ID)
+	updatedAccount1, err := testStore.GetAccount(context.Background(), account1.ID)
 	require.NoError(t, err)
 	require.Equal(t, account1.Balance-int64(n)*amount, updatedAccount1.Balance)
 
-	updatedAccount2, err := testQueries.GetAccount(context.Background(), account2.ID)
+	updatedAccount2, err := testStore.GetAccount(context.Background(), account2.ID)
 	require.NoError(t, err)
 	require.Equal(t, account2.Balance+int64(n)*amount, updatedAccount2.Balance)
 
@@ -111,7 +110,6 @@ func TestTransferTx(t *testing.T) {
 }
 
 func TestTransferTxDeadlock(t *testing.T) {
-	store := NewStore(testDB)
 	account1 := createRandomAccount(t)
 	account2 := createRandomAccount(t)
 
@@ -140,7 +138,7 @@ func TestTransferTxDeadlock(t *testing.T) {
 				ToAccountID:   toAccountID,
 				Amount:        amount,
 			}
-			result, err := store.TransferTx(ctx, arg)
+			result, err := testStore.TransferTx(ctx, arg)
 
 			errs <- err
 			results <- result
@@ -162,11 +160,11 @@ func TestTransferTxDeadlock(t *testing.T) {
 	}
 
 	// check the final updated balances
-	updatedAccount1, err := testQueries.GetAccount(context.Background(), account1.ID)
+	updatedAccount1, err := testStore.GetAccount(context.Background(), account1.ID)
 	require.NoError(t, err)
 	require.Equal(t, account1.Balance, updatedAccount1.Balance)
 
-	updatedAccount2, err := testQueries.GetAccount(context.Background(), account2.ID)
+	updatedAccount2, err := testStore.GetAccount(context.Background(), account2.ID)
 	require.NoError(t, err)
 	require.Equal(t, account2.Balance, updatedAccount2.Balance)
 
