@@ -18,7 +18,8 @@ import (
 )
 
 func TestGetAccountAPI(t *testing.T) {
-	account := randomAccount()
+	user, _ := randomUser(t)
+	account := randomAccount(user.Username)
 
 	testCases := []struct {
 		name          string
@@ -69,7 +70,7 @@ func TestGetAccountAPI(t *testing.T) {
 
 			tc.buildStub(store)
 			// make a test server
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 			url := fmt.Sprintf("/accounts/%d", account.ID)
 
@@ -83,10 +84,10 @@ func TestGetAccountAPI(t *testing.T) {
 
 }
 
-func randomAccount() db.Accounts {
+func randomAccount(owner string) db.Accounts {
 	return db.Accounts{
 		ID:       util.RandomInt(1, 1000),
-		Owner:    util.RandomOwner(),
+		Owner:    owner,
 		Balance:  util.RandomInt(0, 1000),
 		Currency: util.RandomCurrency(),
 	}

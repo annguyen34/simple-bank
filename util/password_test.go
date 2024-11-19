@@ -15,12 +15,19 @@ func TestPassword(t *testing.T) {
 	if err != nil {
 		t.Errorf("error hashing password: %v", err)
 	}
-	if !CheckPasswordHash(password, hashedPassword) {
-		t.Errorf("password and hash do not match")
+
+	err = CheckPasswordHash(password, hashedPassword)
+	require.NoError(t, err)
+
+	if err != nil {
+		t.Errorf("error checking password hash: %v", err)
 	}
 
 	wrongPassword := RandomString(10)
-	if CheckPasswordHash(wrongPassword, hashedPassword) {
-		t.Errorf("wrong password match hash")
+	err = CheckPasswordHash(wrongPassword, hashedPassword)
+	require.Error(t, err)
+	if err == nil {
+		t.Errorf("expect error but got nil")
 	}
+
 }

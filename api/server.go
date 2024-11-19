@@ -1,7 +1,11 @@
 package api
 
 import (
+	"log"
+
 	db "github.com/annguyen34/simple-bank/db/sqlc"
+	"github.com/annguyen34/simple-bank/token"
+	"github.com/annguyen34/simple-bank/util"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
@@ -9,35 +13,54 @@ import (
 
 type Server struct {
 	// Server configuration
-	store  db.Store
-	router *gin.Engine
+	config     util.Config
+	store      db.Store
+	router     *gin.Engine
+	tokenMaker token.Maker
 }
 
-func NewServer(store db.Store) *Server {
+func NewServer(config util.Config, store db.Store) (*Server, error) {
+	tokenMaker, err := token.NewJWTMaker(config.TokenSymmetricKey)
+	if err != nil {
+		log.Fatal("cannot create token maker:", err)
+	}
+
 	server := &Server{
-		store: store}
-	router := gin.Default()
+		config:     config,
+		tokenMaker: tokenMaker,
+		store:      store}
 
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("currency", validCurrency)
 	}
 
-	// Add routes
-	router.GET("/", server.example)
-	router.POST("/accounts", server.createAccount)
-	router.GET("/accounts/:id", server.getAccount)
-	router.GET("/accounts", server.listAccounts)
-
-	router.POST("/transfers", server.createTransfer)
-	router.POST("/users", server.createUser)
-	server.router = router
-	return server
+	server.setupRouter()
+	return server, err
 }
 
 func (server *Server) example(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{
 		"message": "Hello, World!",
 	})
+}
+
+func (server *Server) setupRouter() {
+	router := gin.Default()
+
+	router.GET("/example", server.example)
+
+	authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker))
+
+	authRoutes.POST("/accounts", server.createAccount)
+	authRoutes.GET("/accounts/:id", server.getAccount)
+	authRoutes.GET("/accounts", server.listAccounts)
+
+	authRoutes.POST("/transfers", server.createTransfer)
+
+	router.POST("/login", server.loginUser)
+	router.POST("/signup", server.createUser)
+
+	server.router = router
 }
 
 func (server *Server) Start(address string) error {
