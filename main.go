@@ -72,6 +72,7 @@ func runGrpcServer(config util.Config, store db.Store) {
 }
 
 func runGatewayServer(config util.Config, store db.Store) {
+	// create a gRPC server
 	server, err := gapi.NewServer(config, store)
 	if err != nil {
 		log.Fatal("cannot create server:", err)
@@ -86,15 +87,18 @@ func runGatewayServer(config util.Config, store db.Store) {
 		},
 	})
 
+	// create a new gRPC-Gateway mux
 	grpcMux := runtime.NewServeMux(jsonOption)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	// register gRPC server endpoint
 	err = pb.RegisterSimpleBankHandlerServer(ctx, grpcMux, server)
 	if err != nil {
 		log.Fatal("cannot register gateway server:", err)
 	}
 
+	// create a HTTP mux
 	mux := http.NewServeMux()
 	mux.Handle("/", grpcMux)
 
