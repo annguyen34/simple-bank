@@ -1,6 +1,6 @@
 module github.com/annguyen34/simple-bank
 
-go 1.22.3
+go 1.21.0
 
 require (
 	github.com/gin-gonic/gin v1.10.0
