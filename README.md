@@ -1,4 +1,4 @@
-#### Install tools
+## Install tools
 
 - [Docker desktop](https://www.docker.com/products/docker-desktop)
 - [TablePlus](https://tableplus.com/)
