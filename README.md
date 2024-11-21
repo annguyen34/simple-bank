@@ -47,7 +47,7 @@ Now server is started on [http://localhost:8000/](http://localhost:8000/) for HT
 You can change to Gin server by using function `runGinServer` in `main.go`
 
 - `POST /signup`: Create a new user
-- `POST /users/login`: Login user and get access token & refresh token
+- `POST /login`: Login user and get access token & refresh token
 - `POST /tokens/renew_access`: Return new access token
 - `POST /accounts`: Create a new account
 - `GET /accounts`: Get account list belong to users
@@ -110,12 +110,6 @@ make test
   ```
 
 #### Swagger (API Documentation)
-
-- Run server:
-
-  ```bash
-  make server
-  ```
 
 - Go to [http://localhost:8000/swagger](http://localhost:8000/swagger) to view API documentation
 
