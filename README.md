@@ -1,10 +1,4 @@
-# SIMPLE BANK
-
-This repository contains a project I have learn about design, develop and deploy a complete backend system using Go, PostgreSQL and Docker.
-
-## Setup local development
-
-#### Install tools
+## Install tools
 
 - [Docker desktop](https://www.docker.com/products/docker-desktop)
 - [TablePlus](https://tableplus.com/)
