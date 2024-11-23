@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/hibiken/asynq"
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -18,6 +19,7 @@ import (
 	"github.com/annguyen34/simple-bank/gapi"
 	"github.com/annguyen34/simple-bank/pb"
 	"github.com/annguyen34/simple-bank/util"
+	"github.com/annguyen34/simple-bank/worker"
 )
 
 func main() {
@@ -32,8 +34,15 @@ func main() {
 	}
 
 	store := db.NewStore(conn)
-	go runGatewayServer(config, store)
-	runGrpcServer(config, store)
+
+	redisOpt := asynq.RedisClientOpt{
+		Addr: config.RedisServerAddress,
+	}
+	taskDistributor := worker.NewRedisTaskDistributor(redisOpt)
+
+	go runGatewayServer(config, store, taskDistributor)
+	go runTaskProcessor(redisOpt, store)
+	runGrpcServer(config, store, taskDistributor)
 }
 
 func runGinServer(config util.Config, store db.Store) {
@@ -49,8 +58,8 @@ func runGinServer(config util.Config, store db.Store) {
 
 }
 
-func runGrpcServer(config util.Config, store db.Store) {
-	server, err := gapi.NewServer(config, store)
+func runGrpcServer(config util.Config, store db.Store, taskDistributor worker.TaskDistributor) {
+	server, err := gapi.NewServer(config, store, taskDistributor)
 	if err != nil {
 		log.Fatal("cannot create server:", err)
 	}
@@ -74,9 +83,9 @@ func runGrpcServer(config util.Config, store db.Store) {
 	}
 }
 
-func runGatewayServer(config util.Config, store db.Store) {
+func runGatewayServer(config util.Config, store db.Store, taskDistributor worker.TaskDistributor) {
 	// create a gRPC server
-	server, err := gapi.NewServer(config, store)
+	server, err := gapi.NewServer(config, store, taskDistributor)
 	if err != nil {
 		log.Fatal("cannot create server:", err)
 	}
@@ -118,5 +127,14 @@ func runGatewayServer(config util.Config, store db.Store) {
 	err = http.Serve(listener, handler)
 	if err != nil {
 		log.Fatal("cannot start HTTP gateway server:", err)
+	}
+}
+
+func runTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store) {
+	processor := worker.NewRedisTaskProcessor(redisOpt, store)
+	log.Println("start task processor")
+	err := processor.Start()
+	if err != nil {
+		log.Fatal("cannot start task processor:", err)
 	}
 }
