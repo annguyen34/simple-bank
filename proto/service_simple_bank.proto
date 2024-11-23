@@ -34,10 +34,10 @@ service SimpleBank{
             body: "*"
         };
     }
-    // rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse){
-    //     option (google.api.http) = {
-    //         post: "/v1/update_user"
-    //         body: "*"
-    //     };
-    // }
+    rpc UpdateUser (UpdateUserRequest) returns (UpdateUserResponse){
+        option (google.api.http) = {
+            post: "/v1/update_user"
+            body: "*"
+        };
+    }
 }
