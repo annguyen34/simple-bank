@@ -35,6 +35,7 @@ Now server is started on [http://localhost:8000/](http://localhost:8000/) for HT
 
 - `POST /v1/create_user`: Create a new user
 - `POST /v1/login_user`: Login user and get access token & refresh token
+- `POST /v1/update_user`: Update user information
 
 #### With Gin server
 
